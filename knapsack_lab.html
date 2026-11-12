@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Knapsack Lab</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #1a1a1a;
+            --mut: #666a73;
+            --card: #f4f5f8;
+            --bd: #dcdfe6;
+            --acc: #2563eb;
+            --cur: #fde68a;
+            --src: #dbeafe;
+            --path: #bbf7d0;
+            --fill: #eceef3;
+            --bad: #dc2626;
+            --ok: #15803d;
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px)
+        }
+
+        html {
+            scroll-padding-top: env(safe-area-inset-top, 0px)
+        }
+
+        @media (prefers-color-scheme:dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #15171c;
+                --fg: #eceef2;
+                --mut: #9aa0ac;
+                --card: #1f222a;
+                --bd: #323644;
+                --acc: #6ea0ff;
+                --cur: #6b5a12;
+                --src: #1e3a66;
+                --path: #14532d;
+                --fill: #2a2e3a;
+                --bad: #f87171;
+                --ok: #4ade80
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #15171c;
+            --fg: #eceef2;
+            --mut: #9aa0ac;
+            --card: #1f222a;
+            --bd: #323644;
+            --acc: #6ea0ff;
+            --cur: #6b5a12;
+            --src: #1e3a66;
+            --path: #14532d;
+            --fill: #2a2e3a;
+            --bad: #f87171;
+            --ok: #4ade80
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
+        }
+
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 20px 16px 48px
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0 0 4px
+        }
+
+        h2 {
+            font-size: 16px;
+            margin: 26px 0 10px
+        }
+
+        .sub,
+        .note {
+            color: var(--mut)
+        }
+
+        .sub {
+            margin: 0 0 16px
+        }
+
+        .note {
+            font-size: 13px
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            padding: 14px
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        input[type=number] {
+            width: 80px;
+            font: inherit;
+            color: var(--fg);
+            background: var(--bg);
+            border: 1px solid var(--bd);
+            border-radius: 8px;
+            padding: 5px 8px
+        }
+
+        input[type=range] {
+            accent-color: var(--acc)
+        }
+
+        button {
+            background: var(--acc);
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        button.alt {
+            background: transparent;
+            color: var(--acc);
+            border: 1px solid var(--acc)
+        }
+
+        button.x {
+            background: transparent;
+            color: var(--bad);
+            padding: 4px 8px;
+            font-size: 18px
+        }
+
+        .scroll {
+            overflow-x: auto
+        }
+
+        table {
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        th,
+        td {
+            padding: 5px 10px;
+            border-bottom: 1px solid var(--bd);
+            text-align: left;
+            white-space: nowrap
+        }
+
+        th {
+            color: var(--mut);
+            font-weight: 600
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px
+        }
+
+        .stat b {
+            display: block;
+            font-size: 24px
+        }
+
+        .stat span {
+            color: var(--mut);
+            font-size: 13px
+        }
+
+        .bar {
+            height: 10px;
+            border-radius: 5px;
+            background: var(--fill);
+            overflow: hidden;
+            min-width: 90px
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+            background: var(--acc)
+        }
+
+        table.dp td,
+        table.dp th {
+            padding: 3px 0;
+            width: 34px;
+            min-width: 34px;
+            text-align: center;
+            border: 1px solid var(--bd);
+            font-size: 13px
+        }
+
+        table.dp th:first-child {
+            width: auto;
+            min-width: 110px;
+            text-align: left;
+            padding: 3px 8px
+        }
+
+        table.dp td.f {
+            background: var(--fill)
+        }
+
+        table.dp td.src {
+            background: var(--src)
+        }
+
+        table.dp td.cur {
+            background: var(--cur);
+            font-weight: 700
+        }
+
+        table.dp td.path {
+            background: var(--path);
+            font-weight: 700
+        }
+
+        table.dp td.e {
+            color: transparent
+        }
+
+        .ok {
+            color: var(--ok);
+            font-weight: 600
+        }
+
+        .bad {
+            color: var(--bad);
+            font-weight: 600
+        }
+
+        #why {
+            min-height: 44px
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Knapsack Lab</h1>
+        <p class="sub">Compare the greedy fractional knapsack with the 0/1 dynamic programming solution, and watch the
+            DP table fill in cell by cell.</p>
+
+        <div class="card">
+            <div class="row"><b>Capacity</b><input type="number" id="cap" min="1" max="50" value="50">
+                <span class="note">Presets:</span>
+                <button class="alt" id="p1">Greedy fails (0/1)</button><button class="alt"
+                    id="p2">Textbook</button><button class="alt" id="p3">Random</button>
+            </div>
+            <div class="scroll" style="margin-top:10px">
+                <table id="items"></table>
+            </div>
+            <div class="row" style="margin-top:8px"><button id="add">+ Add item</button><span class="note">Up to 8
+                    items. Weights are whole numbers, capacity up to 50.</span></div>
+        </div>
+
+        <h2>Results</h2>
+        <div class="cards" id="res"></div>
+        <p id="verdict"></p>
+
+        <h2>Fractional knapsack (greedy by value/weight)</h2>
+        <div class="card scroll">
+            <table id="gt"></table>
+        </div>
+
+        <h2>0/1 knapsack: dynamic programming table</h2>
+        <div class="card">
+            <div class="row"><button id="play">Play</button><button class="alt" id="stepb">Step</button><button
+                    class="alt" id="fin">Finish</button><button class="alt" id="rst">Reset</button>
+                <label class="note">Speed <input type="range" id="spd" min="1" max="100" value="60"></label>
+            </div>
+            <p id="why" class="note" style="color:var(--fg)"></p>
+            <div class="scroll">
+                <table class="dp" id="dp"></table>
+            </div>
+            <p class="note">Recurrence: dp[i][w] = max( dp[i-1][w], value[i] + dp[i-1][w-weight[i]] ). Time and space
+                O(n·W).</p>
+        </div>
+    </main>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const nm = i => String.fromCharCode(65 + i);
+        let items = [], W = 50, dp = [], step = 0, total = 0, timer = null, playing = false, path = new Set(), chosen = [];
+
+        // ---------- Algorithms ----------
+        function fractional() {
+            const o = items.map((it, i) => ({ ...it, i, r: it.v / it.w })).sort((a, b) => b.r - a.r);
+            let rem = W, val = 0; const rows = o.map(it => {
+                const take = rem >= it.w ? 1 : rem > 0 ? rem / it.w : 0;
+                rem -= take * it.w; val += take * it.v; return { ...it, take };
+            });
+            return { rows, val };
+        }
+        function greedy01() {
+            const o = items.map((it, i) => ({ ...it, i })).sort((a, b) => b.v / b.w - a.v / a.w);
+            let rem = W, val = 0; const pick = [];
+            for (const it of o) if (it.w <= rem) { rem -= it.w; val += it.v; pick.push(it.i) }
+            return { val, pick: pick.sort((a, b) => a - b) };
+        }
+        function solveDP() {
+            const n = items.length;
+            dp = Array.from({ length: n + 1 }, () => new Array(W + 1).fill(0));
+            for (let i = 1; i <= n; i++)for (let w = 0; w <= W; w++) {
+                const { w: wi, v } = items[i - 1];
+                dp[i][w] = wi <= w ? Math.max(dp[i - 1][w], v + dp[i - 1][w - wi]) : dp[i - 1][w];
+            }
+            // backtrace
+            path = new Set(); chosen = []; let w = W; path.add(n + "," + w);
+            for (let i = n; i > 0; i--) {
+                if (dp[i][w] !== dp[i - 1][w]) { chosen.push(i - 1); w -= items[i - 1].w }
+                path.add((i - 1) + "," + w);
+            }
+            chosen.sort((a, b) => a - b);
+            total = n * (W + 1);
+        }
+
+        // ---------- Rendering ----------
+        const f1 = x => Number.isInteger(x) ? x : x.toFixed(2);
+        function renderItems() {
+            $("items").innerHTML = "<tr><th>Item</th><th>Weight</th><th>Value</th><th>Value/Weight</th><th></th></tr>" +
+                items.map((it, i) => `<tr><td><b>${nm(i)}</b></td><td><input type="number" min="1" max="40" value="${it.w}" data-i="${i}" data-k="w"></td>
+  <td><input type="number" min="0" max="999" value="${it.v}" data-i="${i}" data-k="v"></td><td id="r${i}">${f1(+(it.v / it.w).toFixed(2))}</td>
+  <td><button class="x" data-del="${i}" title="Remove">×</button></td></tr>`).join("");
+        }
+        function renderResults() {
+            const fr = fractional(), g = greedy01(), opt = dp[items.length][W];
+            $("res").innerHTML = [
+                ["Fractional greedy", f1(+fr.val.toFixed(2)), "Optimal when items can be split"],
+                ["0/1 greedy (by ratio)", g.val, "Takes " + (g.pick.map(nm).join(", ") || "nothing")],
+                ["0/1 DP (optimal)", opt, "Takes " + (chosen.map(nm).join(", ") || "nothing") + " (final answer shows after the table finishes)"]
+            ].map(([a, b, c]) => `<div class="card stat"><b>${b}</b><span>${a}</span><div class="note">${c}</div></div>`).join("");
+            $("res").children[2].querySelector(".note").textContent = "Takes " + (chosen.map(nm).join(", ") || "nothing");
+            $("verdict").innerHTML = g.val < opt ? `<span class="bad">Greedy by ratio gives ${g.val}, but the true 0/1 optimum is ${opt}.</span> Greedy fails for 0/1 because skipping a good-ratio item can leave unusable space.`
+                : `<span class="ok">Here greedy by ratio happens to match the 0/1 optimum (${opt}).</span> Try the “Greedy fails” preset to see it break.`;
+            $("gt").innerHTML = "<tr><th>Item</th><th>W</th><th>V</th><th>V/W</th><th>Taken</th><th>Fill</th><th>Value added</th></tr>" +
+                fr.rows.map(r => `<tr><td><b>${nm(r.i)}</b></td><td>${r.w}</td><td>${r.v}</td><td>${f1(+r.r.toFixed(2))}</td>
+    <td>${r.take === 1 ? "whole" : r.take === 0 ? "none" : Math.round(r.take * 100) + "%"}</td><td><div class="bar"><i style="width:${r.take * 100}%"></i></div></td><td>${f1(+(r.take * r.v).toFixed(2))}</td></tr>`).join("");
+        }
+        function renderDP() {
+            const n = items.length, done = step === total, cur = step - 1;
+            let ci = -1, cw = -1; if (cur >= 0) { ci = 1 + Math.floor(cur / (W + 1)); cw = cur % (W + 1) }
+            let h = "<tr><th>item \\ capacity</th>" + Array.from({ length: W + 1 }, (_, w) => `<th>${w}</th>`).join("") + "</tr>";
+            for (let i = 0; i <= n; i++) {
+                h += `<tr><th>${i === 0 ? "0 (no items)" : `${i}: ${nm(i - 1)} (w${items[i - 1].w}, v${items[i - 1].v})`}</th>`;
+                for (let w = 0; w <= W; w++) {
+                    const idx = i === 0 ? -1 : (i - 1) * (W + 1) + w; let c = "e", val = "";
+                    if (i === 0 || idx < step) { c = "f"; val = dp[i][w] }
+                    if (cur >= 0 && i === ci - 1 && (w === cw || (cw >= items[ci - 1].w && w === cw - items[ci - 1].w))) c = "src";
+                    if (idx === cur && cur >= 0) c = "cur";
+                    if (done && path.has(i + "," + w)) c = "path";
+                    h += `<td class="${c}">${i === 0 || idx < step || c === "src" ? dp[i][w] : ""}</td>`;
+                }
+                h += "</tr>";
+            }
+            $("dp").innerHTML = h;
+            let t;
+            if (step === 0) t = "Row 0 is the base case: with no items the value is 0. Press Play or Step to fill row 1.";
+            else if (done) t = `Done. The optimal value is dp[${n}][${W}] = ${dp[n][W]}. Green cells show the backtrace: items ${chosen.map(nm).join(", ") || "(none)"} were taken.`;
+            else {
+                const it = items[ci - 1], a = dp[ci - 1][cw];
+                t = it.w > cw ? `dp[${ci}][${cw}]: item ${nm(ci - 1)} (weight ${it.w}) doesn’t fit in capacity ${cw}, so copy the value above: ${a}.`
+                    : `dp[${ci}][${cw}]: skip ${nm(ci - 1)} = ${a}, or take it = ${it.v} + dp[${ci - 1}][${cw - it.w}] (${dp[ci - 1][cw - it.w]}) = ${it.v + dp[ci - 1][cw - it.w]}. Best is ${dp[ci][cw]}.`;
+            }
+            $("why").textContent = t;
+            $("play").textContent = playing ? "Pause" : "Play";
+        }
+
+        // ---------- Animation ----------
+        function stop() { playing = false; clearTimeout(timer) }
+        function tick() {
+            if (!playing) return;
+            if (step >= total) { stop(); renderDP(); return }
+            step++; renderDP();
+            timer = setTimeout(tick, Math.round(700 / +$("spd").value * 3));
+        }
+        $("play").onclick = () => { if (playing) { stop(); renderDP(); return } if (step >= total) step = 0; playing = true; tick() };
+        $("stepb").onclick = () => { stop(); if (step < total) step++; renderDP() };
+        $("fin").onclick = () => { stop(); step = total; renderDP() };
+        $("rst").onclick = () => { stop(); step = 0; renderDP() };
+
+        // ---------- Data entry ----------
+        function refresh(rebuildItems) {
+            stop(); step = 0;
+            W = Math.max(1, Math.min(50, Math.round(+$("cap").value) || 1));
+            if (rebuildItems) renderItems();
+            solveDP(); renderResults(); renderDP();
+        }
+        $("items").addEventListener("input", e => {
+            const t = e.target; if (!t.dataset.k) return;
+            const i = +t.dataset.i, v = Math.max(t.dataset.k === "w" ? 1 : 0, Math.round(+t.value) || 0);
+            items[i][t.dataset.k] = t.dataset.k === "w" ? Math.max(1, Math.min(40, v)) : v;
+            $("r" + i).textContent = f1(+(items[i].v / items[i].w).toFixed(2)); refresh(false);
+        });
+        $("items").addEventListener("click", e => {
+            const d = e.target.dataset.del; if (d === undefined || items.length <= 1) return;
+            items.splice(+d, 1); refresh(true);
+        });
+        $("add").onclick = () => { if (items.length < 8) { items.push({ w: 3, v: 10 }); refresh(true) } };
+        $("cap").oninput = () => refresh(false);
+        function preset(it, cap) { items = it.map(([w, v]) => ({ w, v })); $("cap").value = cap; refresh(true) }
+        $("p1").onclick = () => preset([[10, 60], [20, 100], [30, 120]], 50);
+        $("p2").onclick = () => preset([[2, 12], [1, 10], [3, 20], [2, 15]], 5);
+        $("p3").onclick = () => {
+            const n = 4 + Math.floor(Math.random() * 3);
+            preset(Array.from({ length: n }, () => [1 + Math.floor(Math.random() * 9), 5 + Math.floor(Math.random() * 40)]), 10 + Math.floor(Math.random() * 11))
+        };
+        $("p1").click();
+    </script>
+</body>
+
+</html>
